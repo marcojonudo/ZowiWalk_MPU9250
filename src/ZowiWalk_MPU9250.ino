@@ -159,18 +159,10 @@ void setup() {
 	//Serial communication initialization
 	Serial.begin(38400);
 
-	int h = 2;
-	hola(h);
-	Serial.println(h);
-
 	setupZowi();
 	setupMPU9250();
 
 	globalTime = millis();
-}
-
-void hola(int h) {
-	h = 3;
 }
 
 void setupZowi() {
@@ -242,8 +234,6 @@ void loop() {
 			zowi.feetMovement(1, 0);
 			zowi.feetMovement(1, 0);
 		}
-
-
 
 		delay(10000);
 	}
