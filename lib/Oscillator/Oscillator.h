@@ -21,42 +21,45 @@ class Oscillator
     Oscillator(int trim=0) {_trim=trim;};
     void attach(int pin, bool rev =false);
     void detach();
-    
+
     void SetA(unsigned int A) {_A=A;};
     void SetO(unsigned int O) {_O=O;};
     void SetPh(double Ph) {_phase0=Ph;};
     void SetT(unsigned int T);
+    void SetParameters(unsigned int A, unsigned int O, double Ph);
+    void RefreshVariables();
     void SetTrim(int trim){_trim=trim;};
     int getTrim() {return _trim;};
-    void SetPosition(int position); 
+    void SetPosition(int position);
     void Stop() {_stop=true;};
     void Play() {_stop=false;};
     void Reset() {_phase=0;};
     void refresh();
 
-    void oscillateServosDegrees();
+    void oscillateServosDegrees(int degreeDif);
+    // void step(int degreeDiff);
     void setPhase(double phase);
     bool goOn();
     void setGoOn(bool goOn);
 
   private:
     bool next_sample();
-    void checkPin();
-    void moveHip();
-    void moveHipServo();
+    void checkPin(int degreeDif);
+    void moveHip(int degreeDif);
+    void moveHipServo(int degreeDif);
     void moveServo();
-    
+
 
   private:
     //-- Servo that is attached to the oscillator
     Servo _servo;
-    
+
     //-- Oscillators parameters
     unsigned int _A;  //-- Amplitude (degrees)
     unsigned int _O;  //-- Offset (degrees)
     unsigned int _T;  //-- Period (miliseconds)
     double _phase0;   //-- Phase (radians)
-    
+
     //-- Internal variables
     int _pos;         //-- Current servo pos
     int _trim;        //-- Calibration offset
@@ -70,17 +73,18 @@ class Oscillator
     double _incf;
     double _incInterval;
     double _Ntotal;
-    
+
     int _pin;
 
     bool _goOn;
+    bool _firstTime;
     int _initialPos;
     bool _cycleStarted;
     bool _turnHips;
 
-    long _previousMillis; 
+    long _previousMillis;
     long _currentMillis;
-    
+
     //-- Oscillation mode. If true, the servo is stopped
     bool _stop;
 

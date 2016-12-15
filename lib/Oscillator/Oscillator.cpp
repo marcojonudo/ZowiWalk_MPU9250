@@ -14,22 +14,24 @@
 #include "Oscillator.h"
 #include <Servo.h>
 
+int hipDegrees = 60;
+
 //-- This function returns true if another sample
 //-- should be taken (i.e. the TS time has passed since
 //-- the last sample was taken
 bool Oscillator::next_sample()
 {
-  
+
   //-- Read current time
   _currentMillis = millis();
- 
+
   //-- Check if the timeout has passed
   if(_currentMillis - _previousMillis > _TS) {
-    _previousMillis = _currentMillis;   
+    _previousMillis = _currentMillis;
 
     return true;
   }
-  
+
   return false;
 }
 
@@ -59,7 +61,7 @@ void Oscillator::attach(int pin, bool rev)
 
       _goOn = true;
   }
-      
+
 }
 
 //-- Detach an oscillator from his servo
@@ -78,21 +80,36 @@ void Oscillator::SetT(unsigned int T)
 {
 	_phase=0;
 	_cycleStarted = false;
-	  _turnHips = false;
-  _pos = round(_A * sin(_phase + _phase0) + _O);
-  _initialPos = _pos+90;
+    _turnHips = false;
+    _pos = round(_A * sin(_phase + _phase0) + _O);
+    _initialPos = _pos+90;
 
-  Serial.print(_pin);
-  Serial.print(':');
-  Serial.print(' ');
-  Serial.println(_initialPos);
+    if ((_pin==4)||(_pin==5)) {
+      _servo.write(_pos+90+_trim);
+    }
 
-  if ((_pin==4)||(_pin==5)) {
-	  _servo.write(_pos+90+_trim);
-  }
-
-  delay(5);
+    delay(5);
 };
+
+void Oscillator::SetParameters(unsigned int A, unsigned int O, double Ph) {
+    _A = A;
+    _O = O;
+    _phase0 = Ph;
+
+    _phase = 0;
+    _cycleStarted = false;
+    _turnHips = false;
+    _firstTime = true;
+    _pos = round(_A * sin(_phase + _phase0) + _O);
+    _initialPos = _pos + 90;
+
+    delay(5);
+}
+
+void Oscillator::RefreshVariables() {
+    _cycleStarted = false;
+    _goOn = true;
+}
 
 /*******************************/
 /* Manual set of the position  */
@@ -100,7 +117,7 @@ void Oscillator::SetT(unsigned int T)
 
 void Oscillator::SetPosition(int position)
 {
-  _servo.write(position+_trim);
+    _servo.write(position+_trim);
 };
 
 
@@ -113,7 +130,7 @@ void Oscillator::refresh()
 {
   //-- Only When TS milliseconds have passed, the new sample is obtained
   if (next_sample()) {
-  
+
       //-- If the oscillator is not stopped, calculate the servo position
       if (!_stop) {
 
@@ -133,16 +150,16 @@ void Oscillator::refresh()
   }
 }
 
-void Oscillator::oscillateServosDegrees()
+void Oscillator::oscillateServosDegrees(int degreeDiff)
 {
 	if (!_stop) {
-		checkPin();
+		checkPin(degreeDiff);
 	}
 }
 
-void Oscillator::checkPin() {
+void Oscillator::checkPin(int degreeDiff) {
 	if ((_pin==2)||(_pin==3)) {
-		moveHip();
+		moveHip(degreeDiff);
 	}
 	else {
 		moveServo();
@@ -150,21 +167,26 @@ void Oscillator::checkPin() {
 
 }
 
-void Oscillator::moveHip() {
-	//Con un inc de 0.05 la precisión es los suficientemente alta como para
-	//comparar con _initialPos a la hora de parar los servos
+void Oscillator::moveHip(int degreeDiff) {
+	/* Con un inc de 0.05 la precisión es los suficientemente alta como para */
+	/* comparar con _initialPos a la hora de parar los servos */
 	double inc = 0.05;
 
 	if (!_turnHips) {
 		_phase = _phase + inc;
 		_pos = round(_A * sin(_phase + _phase0) + _O);
-		delay(5);
+        delay(5);
+
+        /* Se mueve la cadera cuando _pos+90>=90 para que el movimiento sea siempre */
+        /* hacia delante. Si comenzara inmediatamente (60º), primero el giro sería */
+        /* hacia atras (de 90º en reposo a 60º) para despues ser hacia delante */
+        /* (hasta los 120º que se persiguen) */
 		if ((_pos+90)>=90) {
 			_turnHips = true;
 		}
 	}
 	else {
-		moveHipServo();
+		moveHipServo(degreeDiff);
 	}
 }
 
@@ -177,6 +199,8 @@ void Oscillator::moveServo() {
 		_servo.write(_pos+90+_trim);
 		delay(5);
 
+        /* El ciclo de giro comienza cuando la posición del servo sea distita */
+        /* a la inicial (pin 4: 92, pin 5: 88) */
 		if ((_servo.read()-_trim)!=_initialPos) {
 			_cycleStarted = true;
 		}
@@ -187,32 +211,36 @@ void Oscillator::moveServo() {
 		_servo.write(_pos+90+_trim);
 		delay(5);
 
-//		if (_pin == 4) {
-//			Serial.print(_pin);
-//			Serial.print(';');
-//			Serial.print(' ');
-//			Serial.println(_servo.read()-_trim);
-//		}
-
+        /* Cuando se vuelve a la posición inicial, significa que ya se completó */
+        /* un ciclo completo (un paso) */
 		if ((_servo.read()-_trim)==_initialPos) {
 			_goOn = false;
-			_cycleStarted = false;
 		}
 	}
 }
 
-void Oscillator::moveHipServo() {
+void Oscillator::moveHipServo(int degreeDiff) {
+
+    /* En el caso de establecer inc = 0.04, probar con hipDegrees = 61.
+    Con este valor no se llega a los 120º (debido a la aproximación) al no
+    superar los 119.5 */
 	double inc = 0.05;
 
-	_phase = _phase + inc;
-	_pos = round(_A * sin(_phase + _phase0) + _O);
-	_servo.write(_pos+90+_trim);
+    _phase = _phase + inc;
+    _pos = round(_A * sin(_phase + _phase0) + _O);
+
+    /* El +30 es para situar la posición entre 0 y 60, en lugar de entre */
+    /* -30 y +30 (valores devueltos por la función seno) */
+    if (((_pos+30) < (hipDegrees-degreeDiff))&&((_pos+30) > degreeDiff)) {
+        _servo.write(_pos+90+_trim);
+        _firstTime = true;
+    }
+    else if (_firstTime) {
+        _servo.write(_pos+90+_trim);
+        _firstTime = false;
+    }
+
 	delay(5);
-
-//	if (abs(_servo.read()-_trim-90)==30) {
-//		_goOn = false;
-//	}
-
 }
 
 bool Oscillator::goOn() {

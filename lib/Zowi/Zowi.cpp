@@ -222,7 +222,7 @@ void Zowi::turnWithoutMoving(int T, int dir) {
 
 	int turn[4] = { 175, 90, 90, 90 };
 
-	int turnFoot[4] = { 175, 90, 100, 120 };
+	// int turnFoot[4] = { 175, 90, 100, 120 };
 
 	int homes[4] = { 90, 90, 90, 90 };
 
@@ -256,29 +256,9 @@ void Zowi::turnWithoutMoving(int T, int dir) {
 
 }
 
-void Zowi::walkStraightForward(int dir) {
-//	int bend1[4] = { 90, 90, 73, 35 };
-//	int bend2[4] = { 90, 90, 73, 90 };
-//	int turnHip1[4] = { 125, 90, 73, 90 };
-//	int turnHip2[4] = { 125, 90, 90, 90 };
-//
-//	int T = 1000;
-//
-//	_moveServos(T / 2, bend1);
-//	_moveServos(T / 2, bend2);
-//	_moveServos(T / 2, turnHip1);
-//	_moveServos(T, turnHip2);
-//	delay(T * 3);
-
-	Serial.println('-');
-	attachServos();
-	Serial.println('*');
-}
-
-void Zowi::feetMovement() {
+void Zowi::prepareWalking() {
 	int A[4] = { 30, 30, 20, 20 };
-	int O[4] = { 0, 0, 2, -2};
-	int T = 1000;
+	int O[4] = { 0, 0, 4, -4};
 
 	double phase_diff[4] = { DEG2RAD(-90), DEG2RAD(-90), DEG2RAD(180), DEG2RAD(180) };
 
@@ -291,106 +271,21 @@ void Zowi::feetMovement() {
 	delay(500);
 
 	for (int i = 0; i < 4; i++) {
-		servo[i].SetO(O[i]);
-		servo[i].SetA(A[i]);
-		servo[i].SetPh(phase_diff[i]);
-		servo[i].SetT(T);
+		servo[i].SetParameters(A[i], O[i], phase_diff[i]);
 	}
+}
 
-	int steps = 5;
-
+void Zowi::feetMovement(int steps, int degreeDiff) {
 	for (int i=0; i<steps; i++) {
 		while (servo[2].goOn()) {
 			for (int i=0; i<4; i++) {
-				servo[i].oscillateServosDegrees();
+				servo[i].oscillateServosDegrees(degreeDiff);
 			}
 		}
-		servo[2].setGoOn(true);
-
-		//long delay = millis() + 3000;
-//		while (millis()<delay) {
-//
-//		}
-
-		detachServos();
-		delay(3000);
-		attachServos();
-	}
-
-
-
-
-
-//	delay(1000);
-	Serial.print('*');
-	Serial.print('*');
-	Serial.println('*');
-
-//	while (servo[2].goOn()) {
-//
-//		for (int i=0; i<4; i++) {
-//			servo[i].oscillateServosDegrees(1);
-//		}
-//	}
-//
-//	servo[2].setGoOn(true);
-//	delay(1000);
-//	Serial.print('*');
-//	Serial.print('*');
-//	Serial.println('*');
-//
-//	while (servo[2].goOn()) {
-//
-//		for (int i=0; i<4; i++) {
-//			servo[i].oscillateServosDegrees(1);
-//		}
-//	}
-//
-//	servo[2].setGoOn(true);
-//	delay(1000);
-//	Serial.print('*');
-//	Serial.print('*');
-//	Serial.println('*');
-//
-//	while (servo[2].goOn()) {
-//
-//		for (int i=0; i<4; i++) {
-//			servo[i].oscillateServosDegrees(1);
-//		}
-//	}
-//
-//	servo[2].setGoOn(true);
-//	delay(1000);
-//	Serial.print('*');
-//	Serial.print('*');
-//	Serial.println('*');
-//
-//	while (servo[2].goOn()) {
-//
-//		for (int i=0; i<4; i++) {
-//			servo[i].oscillateServosDegrees(1);
-//		}
-//	}
-//	Serial.println('*');
-
-
-}
-
-void Zowi::step(int counter, double inc5, double inc7) {
-	for (int i=0; i<22; i++) {
-		for (int j=0; j<4; j++) {
-			servo[j].oscillateServosDegrees();
+		for (int i = 0; i < 4; i++) {
+			servo[i].RefreshVariables();
 		}
-		Serial.println('*');
-		delay(20);
-	}
-
-	for (int i=0; i<22; i++) {
-		for (int j=0; j<4; j++) {
-			servo[j].oscillateServosDegrees();
-		}
-		Serial.println('&');
-		delay(7);
+		delay(1000);
 	}
 }
 
@@ -536,7 +431,7 @@ void Zowi::shakeLeg(int steps, int T, int dir) {
 //--  Parameters:
 //--    * steps: Number of jumps
 //--    * T: Period
-//--    * h: Jump height: SMALL / MEDIUM / BIG 
+//--    * h: Jump height: SMALL / MEDIUM / BIG
 //--              (or a number in degrees 0 - 90)
 //---------------------------------------------------------
 void Zowi::updown(float steps, int T, int h) {
@@ -592,11 +487,11 @@ void Zowi::tiptoeSwing(float steps, int T, int h) {
 }
 
 //---------------------------------------------------------
-//-- Zowi gait: Jitter 
+//-- Zowi gait: Jitter
 //--  Parameters:
 //--    steps: Number of jitters
-//--    T: Period of one jitter 
-//--    h: height (Values between 5 - 25)   
+//--    T: Period of one jitter
+//--    h: height (Values between 5 - 25)
 //---------------------------------------------------------
 void Zowi::jitter(float steps, int T, int h) {
 
@@ -619,7 +514,7 @@ void Zowi::jitter(float steps, int T, int h) {
 //--  Parameters:
 //--    steps: Number of bends
 //--    T: Period of one bend
-//--    h: height (Values between 5 - 15) 
+//--    h: height (Values between 5 - 15)
 //---------------------------------------------------------
 void Zowi::ascendingTurn(float steps, int T, int h) {
 
