@@ -213,32 +213,23 @@ void Oscillator::moveServo() {
 			_cycleStarted = true;
 		}
 	}
+    /* _overFootThreshold is used, after reaching _initialPos, for avoiding going on
+    writing positions in the servos */
 	else if (((_pos+90) != _initialPos)&&(!_overFootThreshold)) {
 		_servo.write(_pos+90+_trim);
-        Serial.print(_pin); Serial.print(" - "); Serial.println(_servo.read()-_trim);
-
+        
 		delay(5);
-
-        /* Cuando se vuelve a la posición inicial, significa que ya se completó */
-        /* un ciclo completo (un paso) */
-		// if ((_servo.read()-_trim)==_initialPos) {
-        //     goOnCounter += 1;
-        //     Serial.print("Foot: "); Serial.println(goOnCounter);
-        //     if (goOnCounter == 4) {
-        //         _goOn = false;
-        //         Serial.print("FootGoOn: "); Serial.println(_goOn);
-        //     }
-		// }
 	}
+    /* This last 'else if' allows the program to write the last degree in the feet servos,
+    and not do it again */
     else if (((_pos+90) == _initialPos)&&(!_overFootThreshold)) {
         _servo.write(_pos+90+_trim);
-        Serial.print(_pin); Serial.print(" -- "); Serial.println(_servo.read()-_trim);
 
+        /* If degreeDiff >= 0, goOnCounter reach value 4 when increased by feet
+        (because of the loop inside Zowi::feetMovement) */
         goOnCounter += 1;
-        Serial.print("Foot: "); Serial.println(goOnCounter);
         if (goOnCounter == 4) {
             _goOn = false;
-            Serial.print("FootGoOn: "); Serial.println(_goOn);
         }
 
         _overFootThreshold = true;
@@ -276,11 +267,12 @@ void Oscillator::moveHipServo(int degreeDiff) {
         _servo.write(_pos+90+_trim);
 
         _turnThresholdCounter -= 1;
-
         if (_turnThresholdCounter == degreeDiff) {
             _turnThreshold = false;
+
+            /* If degreeDiff < 0, goOnCounter reach value 4 when increased by hip
+            (because hip servos move over the threshold, so it takes longer) */
             goOnCounter += 1;
-            Serial.print(_pin); Serial.print(" --- "); Serial.println(_servo.read()-_trim);
             if (goOnCounter == 4) {
                 _goOn = false;
             }
@@ -288,12 +280,10 @@ void Oscillator::moveHipServo(int degreeDiff) {
     }
     else if (((_pos+30) < (hipDegrees-degreeDiff))&&((_pos+30) > degreeDiff)) {
         _servo.write(_pos+90+_trim);
-        // Serial.print(_pin); Serial.print(" - "); Serial.println(_servo.read()-_trim);
         _firstTime = true;
     }
     else if (_firstTime) {
         _servo.write(_pos+90+_trim);
-        // Serial.print(_pin); Serial.print(" -- "); Serial.println(_servo.read()-_trim);
         _firstTime = false;
 
         if (prevDegreeDiff < 0) {
@@ -312,14 +302,6 @@ void Oscillator::moveHipServo(int degreeDiff) {
 
 bool Oscillator::goOn() {
 	return _goOn;
-}
-
-void Oscillator::setGoOn(bool goOn) {
-	_goOn = goOn;
-}
-
-bool Oscillator::getGoOnCounter() {
-    return goOnCounter;
 }
 
 void Oscillator::setPhase(double phase)

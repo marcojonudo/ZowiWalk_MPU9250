@@ -40,8 +40,6 @@ class Oscillator
     // void step(int degreeDiff);
     void setPhase(double phase);
     bool goOn();
-    bool getGoOnCounter();
-    void setGoOn(bool goOn);
 
   private:
     bool next_sample();
