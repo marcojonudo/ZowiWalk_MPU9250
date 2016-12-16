@@ -15,7 +15,7 @@
 #include <Servo.h>
 
 int hipDegrees = 60;
-int goOnCounter = 0, turnThresholdCounter = 0;
+int goOnCounter = 0;
 
 //-- This function returns true if another sample
 //-- should be taken (i.e. the TS time has passed since
@@ -104,6 +104,8 @@ void Oscillator::SetParameters(unsigned int A, unsigned int O, double Ph) {
     _pos = round(_A * sin(_phase + _phase0) + _O);
     _initialPos = _pos + 90;
     _turnThreshold = false;
+    _turnThresholdCounter = 0;
+    _overFootThreshold = false;
 
     delay(5);
 }
@@ -112,7 +114,8 @@ void Oscillator::RefreshVariables() {
     _cycleStarted = false;
     _goOn = true;
     goOnCounter = 0;
-    turnThresholdCounter = 0;
+    _turnThresholdCounter = 0;
+    _overFootThreshold = false;
 }
 
 /*******************************/
@@ -197,35 +200,49 @@ void Oscillator::moveHip(int degreeDiff) {
 void Oscillator::moveServo() {
 	double inc = 0.05;
 
+    _phase = _phase + inc;
+    _pos = round(_A * sin(_phase + _phase0) + _O);
+
 	if (!_cycleStarted) {
-		_phase = _phase + inc;
-		_pos = round(_A * sin(_phase + _phase0) + _O);
 		_servo.write(_pos+90+_trim);
 		delay(5);
 
         /* El ciclo de giro comienza cuando la posición del servo sea distita */
-        /* a la inicial (pin 4: 92, pin 5: 88) */
+        /* a la inicial (pin 4: 94, pin 5: 86) */
 		if ((_servo.read()-_trim)!=_initialPos) {
 			_cycleStarted = true;
 		}
 	}
-	else {
-		_phase = _phase + inc;
-		_pos = round(_A * sin(_phase + _phase0) + _O);
+	else if (((_pos+90) != _initialPos)&&(!_overFootThreshold)) {
 		_servo.write(_pos+90+_trim);
+        Serial.print(_pin); Serial.print(" - "); Serial.println(_servo.read()-_trim);
+
 		delay(5);
 
         /* Cuando se vuelve a la posición inicial, significa que ya se completó */
         /* un ciclo completo (un paso) */
-		if ((_servo.read()-_trim)==_initialPos) {
-            goOnCounter += 1;
-            Serial.print("Foot: "); Serial.println(goOnCounter);
-            if (goOnCounter == 4) {
-                _goOn = false;
-                Serial.print("FootGoOn: "); Serial.println(_goOn);
-            }
-		}
+		// if ((_servo.read()-_trim)==_initialPos) {
+        //     goOnCounter += 1;
+        //     Serial.print("Foot: "); Serial.println(goOnCounter);
+        //     if (goOnCounter == 4) {
+        //         _goOn = false;
+        //         Serial.print("FootGoOn: "); Serial.println(_goOn);
+        //     }
+		// }
 	}
+    else if (((_pos+90) == _initialPos)&&(!_overFootThreshold)) {
+        _servo.write(_pos+90+_trim);
+        Serial.print(_pin); Serial.print(" -- "); Serial.println(_servo.read()-_trim);
+
+        goOnCounter += 1;
+        Serial.print("Foot: "); Serial.println(goOnCounter);
+        if (goOnCounter == 4) {
+            _goOn = false;
+            Serial.print("FootGoOn: "); Serial.println(_goOn);
+        }
+
+        _overFootThreshold = true;
+    }
 }
 
 void Oscillator::moveHipServo(int degreeDiff) {
@@ -235,52 +252,58 @@ void Oscillator::moveHipServo(int degreeDiff) {
 	double inc = 0.05;
     int prevDegreeDiff;
 
-    /* If compensation needed, we need to move the servos over the 60-120º limits.
-    This variable is used to check that condition */
-
-    if (_turnThreshold) {
-        _pos += 1;
-        _servo.write(_pos+90+_trim);
-        Serial.print(_pin); Serial.print(" --- "); Serial.println(_servo.read()-_trim);
-
-        turnThresholdCounter -= 1;
-        if (turnThresholdCounter == degreeDiff) {
-            _turnThreshold = false;
-            goOnCounter += 1;
-            Serial.print("Hip: "); Serial.println(goOnCounter);
-            if (goOnCounter == 4) {
-                _goOn = false;
-                Serial.print("HipGoOn: "); Serial.println(_goOn);
-            }
-        }
-    }
-    else {
+    if (!_turnThreshold) {
         _phase = _phase + inc;
         _pos = round(_A * sin(_phase + _phase0) + _O);
         prevDegreeDiff = degreeDiff;
-        degreeDiff = 0;
-        // Que degreediff deje de ser 0 para entrar en el sig bucle
+        if (degreeDiff < 0) {
+            degreeDiff = 0;
+        }
     }
 
     /* El +30 es para situar la posición entre 0 y 60, en lugar de entre */
     /* -30 y +30 (valores devueltos por la función seno) */
-    if (((_pos+30) < (hipDegrees-degreeDiff))&&((_pos+30) > degreeDiff)) {
+    if (((_pos+30) < (hipDegrees-degreeDiff))&&((_pos+30) > degreeDiff)&&(_turnThreshold)) {
+        /* If sin(_phase)>0, the angle is increasing. So the _pos also has to increase to reached
+        120+*/
+        if (sin(_phase) > 0) {
+            _pos += 1;
+        }
+        else {
+            _pos -= 1;
+        }
+
         _servo.write(_pos+90+_trim);
-        Serial.print(_pin); Serial.print(" - "); Serial.println(_servo.read()-_trim);
+
+        _turnThresholdCounter -= 1;
+
+        if (_turnThresholdCounter == degreeDiff) {
+            _turnThreshold = false;
+            goOnCounter += 1;
+            Serial.print(_pin); Serial.print(" --- "); Serial.println(_servo.read()-_trim);
+            if (goOnCounter == 4) {
+                _goOn = false;
+            }
+        }
+    }
+    else if (((_pos+30) < (hipDegrees-degreeDiff))&&((_pos+30) > degreeDiff)) {
+        _servo.write(_pos+90+_trim);
+        // Serial.print(_pin); Serial.print(" - "); Serial.println(_servo.read()-_trim);
         _firstTime = true;
     }
     else if (_firstTime) {
         _servo.write(_pos+90+_trim);
-        Serial.print(_pin); Serial.print(" -- "); Serial.println(_servo.read()-_trim);
+        // Serial.print(_pin); Serial.print(" -- "); Serial.println(_servo.read()-_trim);
         _firstTime = false;
 
         if (prevDegreeDiff < 0) {
             _turnThreshold = true;
-            Serial.println("_turnThreshold to true");
         }
         else {
+            /* It is not necessary to check if goOnCounter=4 or not. If degreeDiff>=0,
+            as hips correspond to servo[0] and [1] and they are executed before in the
+            for loop, this value is reached in servo[3] (foot) */
             goOnCounter += 1;
-            Serial.print("Hip2: "); Serial.println(goOnCounter);
         }
     }
 

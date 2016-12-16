@@ -293,11 +293,12 @@ void loop() {
 				break;
 			case 1:
 				zowi.prepareWalking();
-				// int dD;
-				// while (Serial.available()<=0) {
-				// 	dD = Serial.read();
-				// }
-				zowi.feetMovement(3, -4);
+				int degreeDiff;
+				Serial.println("Introduce dD:");
+				while (!Serial.available()) {
+					degreeDiff = Serial.parseInt();
+				}
+				zowi.feetMovement(4, degreeDiff);
 
 				delay(10000);
 

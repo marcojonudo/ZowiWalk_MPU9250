@@ -83,6 +83,8 @@ class Oscillator
     bool _cycleStarted;
     bool _turnHips;
     bool _turnThreshold;
+    int _turnThresholdCounter;
+    bool _overFootThreshold;
 
     long _previousMillis;
     long _currentMillis;
