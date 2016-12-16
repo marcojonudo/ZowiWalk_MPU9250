@@ -40,6 +40,7 @@ class Oscillator
     // void step(int degreeDiff);
     void setPhase(double phase);
     bool goOn();
+    bool getGoOnCounter();
     void setGoOn(bool goOn);
 
   private:
@@ -81,6 +82,7 @@ class Oscillator
     int _initialPos;
     bool _cycleStarted;
     bool _turnHips;
+    bool _turnThreshold;
 
     long _previousMillis;
     long _currentMillis;

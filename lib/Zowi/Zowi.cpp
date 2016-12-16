@@ -277,15 +277,16 @@ void Zowi::prepareWalking() {
 
 void Zowi::feetMovement(int steps, int degreeDiff) {
 	for (int i=0; i<steps; i++) {
-		while (servo[2].goOn()) {
+		while (servo[1].goOn()) {
 			for (int i=0; i<4; i++) {
 				servo[i].oscillateServosDegrees(degreeDiff);
 			}
 		}
+		Serial.print("goOnCounter: "); Serial.println(servo[3].getGoOnCounter());
 		for (int i = 0; i < 4; i++) {
 			servo[i].RefreshVariables();
 		}
-		delay(1000);
+		delay(2000);
 	}
 }
 

@@ -143,6 +143,7 @@ float magCalibration[3] = {0, 0, 0}, gyroBias[3] = {0, 0, 0}, accelBias[3] = {0,
 #define nYaw 200
 float globalTime;
 int yawCounter = 0, initialDirection = 361, meanYaw;
+bool yawCalculated = false, startMoving = false;;
 float yaw, totalYaw;
 float deltat = 0.0f;
 uint32_t lastUpdate = 0; // used to calculate integration interval
@@ -226,19 +227,35 @@ void loop() {
 
 	float actualTime = millis();
 
+	/* After 10s values have stabilized */
 	if ((actualTime-globalTime)>10000) {
-		bool startMoving = getMeanYaw();
+		getMeanYaw(yaw);
+		if (initialDirection != 361) {
+			startMoving = true;
+		}
+
+		Serial.println(startMoving);
+		Serial.println(initialDirection);
 
 		if (startMoving) {
 			zowi.prepareWalking();
 			zowi.feetMovement(1, 0);
-			zowi.feetMovement(1, 0);
-		}
+			/* 25 meausres of margin to stabilise values */
+			for (int i=0; i<25; i++) {
+				float yaw = calculateYaw();
+			}
+			for (int i=0; i<200; i++) {
+				float yaw = calculateYaw();
+				getMeanYaw(yaw);
+			}
+			int directionDiff = abs(initialDirection-meanYaw);
+			int angleCompensation = 30 - directionDiff;
 
-		delay(10000);
+			zowi.feetMovement(1, angleCompensation);
+		}
 	}
 
-    Serial.println(round(yaw));
+    // Serial.println(round(yaw));
 
 	//First attemp to initial software
 	if (buttonPushed) {
@@ -276,7 +293,11 @@ void loop() {
 				break;
 			case 1:
 				zowi.prepareWalking();
-				zowi.feetMovement(3, 10);
+				// int dD;
+				// while (Serial.available()<=0) {
+				// 	dD = Serial.read();
+				// }
+				zowi.feetMovement(3, -4);
 
 				delay(10000);
 
@@ -292,7 +313,7 @@ void loop() {
 //-- Functions --------------------------------------------------//
 ///////////////////////////////////////////////////////////////////
 
-bool getMeanYaw() {
+void getMeanYaw(float yaw) {
 	yawCounter++;
 	totalYaw += yaw;
 
@@ -311,9 +332,7 @@ bool getMeanYaw() {
 		}
 		yawCounter = 0;
 		totalYaw = 0;
-		return true;
 	}
-	return false;
 }
 
 float calculateYaw() {

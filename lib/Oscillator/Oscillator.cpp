@@ -15,6 +15,7 @@
 #include <Servo.h>
 
 int hipDegrees = 60;
+int goOnCounter = 0, turnThresholdCounter = 0;
 
 //-- This function returns true if another sample
 //-- should be taken (i.e. the TS time has passed since
@@ -102,6 +103,7 @@ void Oscillator::SetParameters(unsigned int A, unsigned int O, double Ph) {
     _firstTime = true;
     _pos = round(_A * sin(_phase + _phase0) + _O);
     _initialPos = _pos + 90;
+    _turnThreshold = false;
 
     delay(5);
 }
@@ -109,6 +111,8 @@ void Oscillator::SetParameters(unsigned int A, unsigned int O, double Ph) {
 void Oscillator::RefreshVariables() {
     _cycleStarted = false;
     _goOn = true;
+    goOnCounter = 0;
+    turnThresholdCounter = 0;
 }
 
 /*******************************/
@@ -214,30 +218,70 @@ void Oscillator::moveServo() {
         /* Cuando se vuelve a la posición inicial, significa que ya se completó */
         /* un ciclo completo (un paso) */
 		if ((_servo.read()-_trim)==_initialPos) {
-			_goOn = false;
+            goOnCounter += 1;
+            Serial.print("Foot: "); Serial.println(goOnCounter);
+            if (goOnCounter == 4) {
+                _goOn = false;
+                Serial.print("FootGoOn: "); Serial.println(_goOn);
+            }
 		}
 	}
 }
 
 void Oscillator::moveHipServo(int degreeDiff) {
-
     /* En el caso de establecer inc = 0.04, probar con hipDegrees = 61.
     Con este valor no se llega a los 120º (debido a la aproximación) al no
     superar los 119.5 */
 	double inc = 0.05;
+    int prevDegreeDiff;
 
-    _phase = _phase + inc;
-    _pos = round(_A * sin(_phase + _phase0) + _O);
+    /* If compensation needed, we need to move the servos over the 60-120º limits.
+    This variable is used to check that condition */
+
+    if (_turnThreshold) {
+        _pos += 1;
+        _servo.write(_pos+90+_trim);
+        Serial.print(_pin); Serial.print(" --- "); Serial.println(_servo.read()-_trim);
+
+        turnThresholdCounter -= 1;
+        if (turnThresholdCounter == degreeDiff) {
+            _turnThreshold = false;
+            goOnCounter += 1;
+            Serial.print("Hip: "); Serial.println(goOnCounter);
+            if (goOnCounter == 4) {
+                _goOn = false;
+                Serial.print("HipGoOn: "); Serial.println(_goOn);
+            }
+        }
+    }
+    else {
+        _phase = _phase + inc;
+        _pos = round(_A * sin(_phase + _phase0) + _O);
+        prevDegreeDiff = degreeDiff;
+        degreeDiff = 0;
+        // Que degreediff deje de ser 0 para entrar en el sig bucle
+    }
 
     /* El +30 es para situar la posición entre 0 y 60, en lugar de entre */
     /* -30 y +30 (valores devueltos por la función seno) */
     if (((_pos+30) < (hipDegrees-degreeDiff))&&((_pos+30) > degreeDiff)) {
         _servo.write(_pos+90+_trim);
+        Serial.print(_pin); Serial.print(" - "); Serial.println(_servo.read()-_trim);
         _firstTime = true;
     }
     else if (_firstTime) {
         _servo.write(_pos+90+_trim);
+        Serial.print(_pin); Serial.print(" -- "); Serial.println(_servo.read()-_trim);
         _firstTime = false;
+
+        if (prevDegreeDiff < 0) {
+            _turnThreshold = true;
+            Serial.println("_turnThreshold to true");
+        }
+        else {
+            goOnCounter += 1;
+            Serial.print("Hip2: "); Serial.println(goOnCounter);
+        }
     }
 
 	delay(5);
@@ -249,6 +293,10 @@ bool Oscillator::goOn() {
 
 void Oscillator::setGoOn(bool goOn) {
 	_goOn = goOn;
+}
+
+bool Oscillator::getGoOnCounter() {
+    return goOnCounter;
 }
 
 void Oscillator::setPhase(double phase)
