@@ -279,7 +279,6 @@ void Zowi::prepareWalking() {
 	}
 	int homes[4] = {90, 90, 90, 90};
 	_moveServos(500, homes);
-	delay(500);
 
 	for (int i = 0; i < 4; i++) {
 		servo[i].SetParameters(A[i], O[i], phase_diff[i]);
@@ -291,6 +290,8 @@ void Zowi::feetMovement(int steps, int degreeDiff) {
 		while (servo[1].goOn() && servo[3].goOn()) {
 			for (int i=0; i<4; i++) {
 				servo[i].oscillateServosDegrees(degreeDiff);
+				float yaw = mpu.calculateYaw();
+				// Serial.print("   "); Serial.println(round(yaw));
 			}
 		}
 		for (int i = 0; i < 4; i++) {
