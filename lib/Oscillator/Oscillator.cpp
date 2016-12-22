@@ -177,7 +177,7 @@ void Oscillator::checkPin(int degreeDiff) {
 void Oscillator::moveHip(int degreeDiff) {
 	/* Con un inc de 0.05 la precisión es los suficientemente alta como para */
 	/* comparar con _initialPos a la hora de parar los servos */
-	double inc = 0.05;
+	double inc = 0.13;
 
 	if (!_turnHips) {
 		_phase = _phase + inc;
@@ -198,15 +198,19 @@ void Oscillator::moveHip(int degreeDiff) {
 }
 
 void Oscillator::moveServo() {
-	double inc = 0.05;
+	double inc = 0.13;
 
     _phase = _phase + inc;
     _pos = round(_A * sin(_phase + _phase0) + _O);
+    Serial.print(_pin); Serial.print(":  "); Serial.println(_pos+90);
 
 	if (!_cycleStarted) {
 		_servo.write(_pos+90+_trim);
 		delay(5);
+        Serial.print(_pin); Serial.print(":    "); Serial.println(_pos+90);
 
+        /* Turn cycle starts when servo's position is different to the
+        initial one (pin 4: 94, pin 5: 86) */
         /* El ciclo de giro comienza cuando la posición del servo sea distita */
         /* a la inicial (pin 4: 94, pin 5: 86) */
 		if ((_servo.read()-_trim)!=_initialPos) {
@@ -217,7 +221,7 @@ void Oscillator::moveServo() {
     writing positions in the servos */
 	else if (((_pos+90) != _initialPos)&&(!_overFootThreshold)) {
 		_servo.write(_pos+90+_trim);
-        
+
 		delay(5);
 	}
     /* This last 'else if' allows the program to write the last degree in the feet servos,
@@ -228,19 +232,18 @@ void Oscillator::moveServo() {
         /* If degreeDiff >= 0, goOnCounter reach value 4 when increased by feet
         (because of the loop inside Zowi::feetMovement) */
         goOnCounter += 1;
+        Serial.print(_pin); Serial.print(" - "); Serial.println(goOnCounter);
         if (goOnCounter == 4) {
             _goOn = false;
         }
+        Serial.print(_pin); Serial.print(" - "); Serial.println(_goOn);
 
         _overFootThreshold = true;
     }
 }
 
 void Oscillator::moveHipServo(int degreeDiff) {
-    /* En el caso de establecer inc = 0.04, probar con hipDegrees = 61.
-    Con este valor no se llega a los 120º (debido a la aproximación) al no
-    superar los 119.5 */
-	double inc = 0.05;
+	double inc = 0.13;
     int prevDegreeDiff;
 
     if (!_turnThreshold) {
@@ -252,8 +255,8 @@ void Oscillator::moveHipServo(int degreeDiff) {
         }
     }
 
-    /* El +30 es para situar la posición entre 0 y 60, en lugar de entre */
-    /* -30 y +30 (valores devueltos por la función seno) */
+    /* The +30 is used to make the position be between 0 and 60, instead of
+    between -30 and +30 (values given by the sin function) */
     if (((_pos+30) < (hipDegrees-degreeDiff))&&((_pos+30) > degreeDiff)&&(_turnThreshold)) {
         /* If sin(_phase)>0, the angle is increasing. So the _pos also has to increase to reached
         120+*/
