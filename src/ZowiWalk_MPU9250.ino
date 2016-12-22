@@ -31,9 +31,6 @@
 #include <Zowi.h> // 9 bytes
 Zowi zowi;  // 337 bytes
 
-#include <MPU9250.h>
-MPU9250 mpu;
-
 //---------------------------------------------------------
 //-- Configuration of pins where the servos are attached
 /*
@@ -140,7 +137,7 @@ void setupZowi() {
 	pinMode(PIN_SecondButton, INPUT);
 
 	//Set the servo pins
-	zowi.init(PIN_YL, PIN_YR, PIN_RL, PIN_RR, true);
+	zowi.init(PIN_YL, PIN_YR, PIN_RL, PIN_RR, mpu, true);
 	//Set a random seed
 	randomSeed(analogRead(A6));
 
@@ -166,9 +163,17 @@ void setupMPU9250() {
 //-- Principal Loop ---------------------------------------------//
 ///////////////////////////////////////////////////////////////////
 void loop() {
-	float yaw = calculateYaw();
-
 	float actualTime = millis();
+
+	if ((actualTime-globalTime)>15000) {
+		float yaw = zowi.getYaw();
+		Serial.print("  "); Serial.println(round(yaw));
+
+	}
+	else {
+		float yaw = zowi.getYaw();
+		Serial.println(round(yaw));
+	}
 
 	/* After 10s values have stabilized */
 	// if ((actualTime-globalTime)>10000) {
@@ -190,7 +195,7 @@ void loop() {
 	// 		zowi.feetMovement(1, angleCompensation);
 	// 	}
 	// }
-
+	//
     // Serial.println(round(yaw));
 
 	//First attemp to initial software
@@ -270,47 +275,6 @@ void getMeanYaw(float yaw) {
 		yawCounter = 0;
 		totalYaw = 0;
 	}
-}
-
-float calculateYaw() {
-	float ax, ay, az, gx, gy, gz, mx, my, mz;
-
-	bool dataReady = mpu.dataReady();
-	if (dataReady) {
-		mpu.getAccelData(&ax, &ay, &az);
-		Serial.print("ax = "); Serial.print(ax);
-		Serial.print(" ay = "); Serial.print(ay);
-		Serial.print(" az = "); Serial.print(az); Serial.println(" g");
-
-        mpu.getGyroData(&gx, &gy, &gz);
-		Serial.print("gx = "); Serial.print(gx);
-		Serial.print(" gy = "); Serial.print(gy);
-		Serial.print(" gz = "); Serial.print(gz); Serial.println(" deg/s");
-
-        mpu.getMagData(&mx, &my, &mz);
-		// Serial.print(mx); Serial.print(",");
-		// Serial.print(my); Serial.print(",");
-		// Serial.println(mz); //Serial.print("\t");
-	}
-
-	// Now = micros();
-    // deltat = ((Now - lastUpdate)/1000000.0f); // set integration time by time elapsed since last filter update
-    // lastUpdate = Now;
-	//
-    // /* Al darse la vuelta el sensor, cambia la convención de ejes */
-	// // MadgwickQuaternionUpdate(-ax, ay, az, gx*PI/180.0f, -gy*PI/180.0f, -gz*PI/180.0f, my, -mx, mz);
-    // MadgwickQuaternionUpdate(-ax, -ay, -az, gx*PI/180.0f, gy*PI/180.0f, gz*PI/180.0f, my, mx, -mz);
-	//
-    // // pitch = -asinf(2.0f * (q[1] * q[3] - q[0] * q[2]));
-    // // roll  = atan2f(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
-    // yaw = atan2f(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);
-    // // pitch *= 180.0f / PI;
-    // yaw   *= 180.0f / PI;
-    // if (yaw < 0) yaw += 360.0f; // Ensure yaw stays between 0 and 360
-    // // roll  *= 180.0f / PI;
-	//
-	// Serial.println(yaw);
-	return 0;
 }
 
 //-- Function executed when second button is pushed

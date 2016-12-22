@@ -13,6 +13,7 @@
 #include "Zowi_sounds.h"
 #include "Zowi_gestures.h"
 
+#include <MPU9250.h>
 
 //-- Constants
 #define FORWARD     1
@@ -34,7 +35,7 @@ class Zowi
   public:
 
     //-- Zowi initialization
-    void init(int YL, int YR, int RL, int RR, bool load_calibration=true, int NoiseSensor=PIN_NoiseSensor, int Buzzer=PIN_Buzzer, int USTrigger=PIN_Trigger, int USEcho=PIN_Echo);
+    void init(int YL, int YR, int RL, int RR, MPU9250 mpu9250, bool load_calibration=true, int NoiseSensor=PIN_NoiseSensor, int Buzzer=PIN_Buzzer, int USTrigger=PIN_Trigger, int USEcho=PIN_Echo);
 
     //-- Attach & detach functions
     void attachServos();
@@ -105,6 +106,8 @@ class Zowi
     //-- Gestures
     void playGesture(int gesture);
 
+    float getYaw();
+
 
   private:
 
@@ -112,6 +115,7 @@ class Zowi
     BatReader battery;
     Oscillator servo[4];
     US us;
+    MPU9250 mpu;
 
     int servo_pins[4];
     int servo_trim[4];

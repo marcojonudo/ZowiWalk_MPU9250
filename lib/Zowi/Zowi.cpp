@@ -8,8 +8,9 @@
 #include "Zowi.h"
 #include <Oscillator.h>
 #include <US.h>
+#include <MPU9250.h>
 
-void Zowi::init(int YL, int YR, int RL, int RR, bool load_calibration,
+void Zowi::init(int YL, int YR, int RL, int RR, MPU9250 mpu9250, bool load_calibration,
 		int NoiseSensor, int Buzzer, int USTrigger, int USEcho) {
 
 	servo_pins[0] = YL;
@@ -41,6 +42,12 @@ void Zowi::init(int YL, int YR, int RL, int RR, bool load_calibration,
 
 	pinMode(Buzzer, OUTPUT);
 	pinMode(NoiseSensor, INPUT);
+
+	// mpu = mpu9250;
+}
+
+float Zowi::getYaw() {
+	return mpu.calculateYaw();
 }
 
 ///////////////////////////////////////////////////////////////////
