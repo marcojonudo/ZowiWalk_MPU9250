@@ -137,7 +137,7 @@ void setupZowi() {
 	pinMode(PIN_SecondButton, INPUT);
 
 	//Set the servo pins
-	zowi.init(PIN_YL, PIN_YR, PIN_RL, PIN_RR, mpu, true);
+	zowi.init(PIN_YL, PIN_YR, PIN_RL, PIN_RR, true);
 	//Set a random seed
 	randomSeed(analogRead(A6));
 
@@ -156,7 +156,7 @@ void setupZowi() {
 }
 
 void setupMPU9250() {
-	mpu.initMPU();
+	zowi.initMPU();
 }
 
 ///////////////////////////////////////////////////////////////////

@@ -10,7 +10,7 @@
 #include <US.h>
 #include <MPU9250.h>
 
-void Zowi::init(int YL, int YR, int RL, int RR, MPU9250 mpu9250, bool load_calibration,
+void Zowi::init(int YL, int YR, int RL, int RR, bool load_calibration,
 		int NoiseSensor, int Buzzer, int USTrigger, int USEcho) {
 
 	servo_pins[0] = YL;
@@ -42,8 +42,12 @@ void Zowi::init(int YL, int YR, int RL, int RR, MPU9250 mpu9250, bool load_calib
 
 	pinMode(Buzzer, OUTPUT);
 	pinMode(NoiseSensor, INPUT);
+}
 
-	// mpu = mpu9250;
+/* Because of the problem with instances, the communication with
+MPU9250 has been moved to Zowi */
+void Zowi::initMPU() {
+	mpu.initMPU();
 }
 
 float Zowi::getYaw() {

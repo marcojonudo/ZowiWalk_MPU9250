@@ -35,7 +35,7 @@ class Zowi
   public:
 
     //-- Zowi initialization
-    void init(int YL, int YR, int RL, int RR, MPU9250 mpu9250, bool load_calibration=true, int NoiseSensor=PIN_NoiseSensor, int Buzzer=PIN_Buzzer, int USTrigger=PIN_Trigger, int USEcho=PIN_Echo);
+    void init(int YL, int YR, int RL, int RR, bool load_calibration=true, int NoiseSensor=PIN_NoiseSensor, int Buzzer=PIN_Buzzer, int USTrigger=PIN_Trigger, int USEcho=PIN_Echo);
 
     //-- Attach & detach functions
     void attachServos();
@@ -106,6 +106,7 @@ class Zowi
     //-- Gestures
     void playGesture(int gesture);
 
+    void initMPU();
     float getYaw();
 
 
