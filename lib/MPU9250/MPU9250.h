@@ -49,6 +49,8 @@
 #define magScale1 1.01f
 #define magScale2 0.95f
 
+#define beta 0.604599857330322f
+
 class MPU9250
 {
   public:
@@ -57,6 +59,7 @@ class MPU9250
     void getMagData(float * mx, float * my, float * mz);
     void initMPU();
     bool dataReady();
+    float calculateYaw();
 
   private:
     uint8_t readByte(uint8_t address, uint8_t subAddress);
@@ -68,11 +71,14 @@ class MPU9250
     void calibrateAccelGyro(float * dest1, float * dest2);
     void initMPU9250();
     void initAK8963(float * destination);
+    float MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz);
 
   private:
     float magCalibration[3] = {0, 0, 0};
     float accelBias[3] = {0, 0, 0};
     float gyroBias[3] = {0, 0, 0};
+    uint32_t lastUpdate = 0;
+    float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 };
 
 #endif
