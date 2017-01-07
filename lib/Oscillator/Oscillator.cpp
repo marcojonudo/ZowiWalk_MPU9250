@@ -177,17 +177,16 @@ void Oscillator::checkPin(int degreeDiff) {
 void Oscillator::moveHip(int degreeDiff) {
 	/* Con un inc de 0.05 la precisión es los suficientemente alta como para */
 	/* comparar con _initialPos a la hora de parar los servos */
-	double inc = 0.13;
+	double inc = 0.15;
 
 	if (!_turnHips) {
 		_phase = _phase + inc;
 		_pos = round(_A * sin(_phase + _phase0) + _O);
         delay(5);
 
-        /* Se mueve la cadera cuando _pos+90>=90 para que el movimiento sea siempre */
-        /* hacia delante. Si comenzara inmediatamente (60º), primero el giro sería */
-        /* hacia atras (de 90º en reposo a 60º) para despues ser hacia delante */
-        /* (hasta los 120º que se persiguen) */
+        /* The hip is moved when _pos+90>=90 so that the movement is always forward.
+        If it started immediatly (60º), on the first moment the turn would be backward
+        (from rest position to 60º), and after that it would be forward (until 120º)*/
 		if ((_pos+90)>=90) {
 			_turnHips = true;
 		}
@@ -198,52 +197,56 @@ void Oscillator::moveHip(int degreeDiff) {
 }
 
 void Oscillator::moveServo() {
-	double inc = 0.13;
+	double inc = 0.15;
 
     _phase = _phase + inc;
     _pos = round(_A * sin(_phase + _phase0) + _O);
-    Serial.print(_pin); Serial.print(":  "); Serial.println(_pos+90);
+    // Serial.print(_pin); Serial.print(": "); Serial.println(_pos+90);
 
 	if (!_cycleStarted) {
 		_servo.write(_pos+90+_trim);
 		delay(5);
-        Serial.print(_pin); Serial.print(":    "); Serial.println(_pos+90);
+        // Serial.print(_pin); Serial.print(":    "); Serial.println(_pos+90);
 
         /* Turn cycle starts when servo's position is different to the
         initial one (pin 4: 94, pin 5: 86) */
-        /* El ciclo de giro comienza cuando la posición del servo sea distita */
-        /* a la inicial (pin 4: 94, pin 5: 86) */
 		if ((_servo.read()-_trim)!=_initialPos) {
 			_cycleStarted = true;
 		}
-	}
-    /* _overFootThreshold is used, after reaching _initialPos, for avoiding going on
-    writing positions in the servos */
-	else if (((_pos+90) != _initialPos)&&(!_overFootThreshold)) {
-		_servo.write(_pos+90+_trim);
 
-		delay(5);
+        if ((_pos+90) > _initialPos) {
+            _increasing = true;
+        }
+        else {
+            _increasing = false;
+        }
 	}
-    /* This last 'else if' allows the program to write the last degree in the feet servos,
-    and not do it again */
-    else if (((_pos+90) == _initialPos)&&(!_overFootThreshold)) {
+    else if ((((_increasing)&&((_pos+90) <= _initialPos))||
+            ((!_increasing)&&((_pos+90) >= _initialPos)))&&(!_overFootThreshold)) {
         _servo.write(_pos+90+_trim);
+		delay(5);
+
+        // Serial.print(_pin); Serial.print(":   "); Serial.print(_servo.read()-_trim);
+        // Serial.print("    "); Serial.println(_increasing);
 
         /* If degreeDiff >= 0, goOnCounter reach value 4 when increased by feet
         (because of the loop inside Zowi::feetMovement) */
         goOnCounter += 1;
-        Serial.print(_pin); Serial.print(" - "); Serial.println(goOnCounter);
+
         if (goOnCounter == 4) {
             _goOn = false;
         }
-        Serial.print(_pin); Serial.print(" - "); Serial.println(_goOn);
 
         _overFootThreshold = true;
+    }
+    else {
+        _servo.write(_pos+90+_trim);
+		delay(5);
     }
 }
 
 void Oscillator::moveHipServo(int degreeDiff) {
-	double inc = 0.13;
+	double inc = 0.15;
     int prevDegreeDiff;
 
     if (!_turnThreshold) {
@@ -288,6 +291,7 @@ void Oscillator::moveHipServo(int degreeDiff) {
     else if (_firstTime) {
         _servo.write(_pos+90+_trim);
         _firstTime = false;
+        Serial.println(_servo.read()-_trim);
 
         if (prevDegreeDiff < 0) {
             _turnThreshold = true;
