@@ -168,94 +168,94 @@ void loop() {
 	float actualTime = millis();
 	zowi.prepareWalking();
 
-	zowi.feetMovement(1, 0);
-	Serial.println("-------------");
-	delay(2000);
-	zowi.feetMovement(1, 0);
-	Serial.println("-------------");
-	delay(2000);
-	zowi.feetMovement(1, -3);
-	Serial.println("-------------");
-	delay(2000);
-	zowi.feetMovement(1, -3);
-	Serial.println("-------------");
-	delay(10000);
+	// zowi.feetMovement(1, 0);
+	// Serial.println("-------------");
+	// delay(2000);
+	// zowi.feetMovement(1, 0);
+	// Serial.println("-------------");
+	// delay(2000);
+	// zowi.feetMovement(1, -3);
+	// Serial.println("-------------");
+	// delay(2000);
+	// zowi.feetMovement(1, -3);
+	// Serial.println("-------------");
+	// delay(10000);
 
 	/* After 10s values have stabilized */
-	// if ((actualTime-globalTime)>10000) {
-	// 	float yaw = zowi.getYaw();
-	// 	// Serial.print(" "); Serial.println(round(yaw));
-	// 	getMeanYaw(yaw);
-	// 	if (initialDirection != 361) {
-	// 		startMoving = true;
-	// 	}
-	//
-	// 	if (startMoving) {
-	// 		Serial.print("Initial dir: "); Serial.println(initialDirection);
-	// 		float yaw = zowi.getYaw();
-	// 		Serial.print("-"); Serial.println(round(yaw));
-	// 		zowi.prepareWalking();
-	// 		yaw = zowi.getYaw();
-	// 		a = round(yaw);
-	// 		Serial.print("a : "); Serial.println(a);
-	// 		Serial.print("a - iD: "); Serial.println(abs(a-initialDirection));
-	// 		zowi.feetMovement(1, 0);
-	// 		yaw = zowi.getYaw();
-	// 		b = round(yaw);
-	// 		Serial.print("b : "); Serial.println(b);
-	// 		Serial.print("b - a: "); Serial.println(abs(b-a));
-	// 		Serial.print("b - iD: "); Serial.println(b-initialDirection);
-	// 		zowi.feetMovement(1, 0);
-	// 		yaw = zowi.getYaw();
-	// 		c = round(yaw);
-	// 		Serial.print("c : "); Serial.println(c);
-	// 		Serial.print("c - b: "); Serial.println(abs(c-b));
-	// 		Serial.print("c - iD: "); Serial.println(c-initialDirection);
-	// 		zowi.feetMovement(1, 0);
-	// 		yaw = zowi.getYaw();
-	// 		d = round(yaw);
-	// 		Serial.print("d : "); Serial.println(d);
-	// 		Serial.print("d - c: "); Serial.println(abs(d-c));
-	// 		Serial.print("d - iD: "); Serial.println(d-initialDirection);
-	// 		zowi.feetMovement(1, 0);
-	// 		yaw = zowi.getYaw();
-	// 		e = round(yaw);
-	// 		Serial.print("e : "); Serial.println(e);
-	// 		Serial.print("e - d: "); Serial.println(abs(e-d));
-	// 		Serial.print("e - iD: "); Serial.println(e-initialDirection);
-	// 		zowi.feetMovement(1, 0);
-	// 		yaw = zowi.getYaw();
-	// 		f = round(yaw);
-	// 		Serial.print("f : "); Serial.println(f);
-	// 		Serial.print("f - e: "); Serial.println(abs(f-e));
-	// 		Serial.print("f - iD: "); Serial.println(f-initialDirection);
-	// 		zowi.feetMovement(1, 0);
-	// 		yaw = zowi.getYaw();
-	// 		g = round(yaw);
-	// 		Serial.print("g : "); Serial.println(g);
-	// 		Serial.print("g - f: "); Serial.println(abs(g-f));
-	// 		Serial.print("g - iD: "); Serial.println(g-initialDirection);
-	// 		// for (int i=0; i<200; i++) {
-	// 		// 	yaw = zowi.getYaw();
-	// 		// 	Serial.print("--"); Serial.println(round(yaw));
-	// 		// 	Serial.print("a - yaw :"); Serial.println(abs(a-round(yaw)));
-	// 		// 	Serial.print("b - yaw :"); Serial.println(abs(b-round(yaw)));
-	// 		// }
-	// 		delay(10000);
-	// 		// for (int i=0; i<200; i++) {
-	// 		// 	float yaw = calculateYaw();
-	// 		// 	getMeanYaw(yaw);
-	// 		// }
-	// 		int directionDiff = abs(initialDirection-meanYaw);
-	// 		int angleCompensation = 30 - directionDiff;
-	//
-	// 		//zowi.feetMovement(1, angleCompensation);
-	// 	}
-	// }
-	// else {
-	// 	float yaw = zowi.getYaw();
-	// 	// Serial.println(round(yaw));
-	// }
+	if ((actualTime-globalTime)>10000) {
+		float yaw = zowi.getYaw();
+		// Serial.print(" "); Serial.println(round(yaw));
+		getMeanYaw(yaw);
+		if (initialDirection != 361) {
+			startMoving = true;
+		}
+
+		if (startMoving) {
+			Serial.print("Initial dir: "); Serial.println(initialDirection);
+			float yaw = zowi.getYaw();
+			Serial.print("-"); Serial.println(round(yaw));
+			zowi.prepareWalking();
+			yaw = zowi.getYaw();
+			a = round(yaw);
+			Serial.print("a : "); Serial.println(a);
+			Serial.print("a - iD: "); Serial.println(abs(a-initialDirection));
+			zowi.feetMovement(1, -10);
+			yaw = zowi.getYaw();
+			b = round(yaw);
+			Serial.print("b : "); Serial.println(b);
+			Serial.print("b - a: "); Serial.println(abs(b-a));
+			Serial.print("b - iD: "); Serial.println(b-initialDirection);
+			zowi.feetMovement(1, 0);
+			yaw = zowi.getYaw();
+			c = round(yaw);
+			Serial.print("c : "); Serial.println(c);
+			Serial.print("c - b: "); Serial.println(abs(c-b));
+			Serial.print("c - iD: "); Serial.println(c-initialDirection);
+			zowi.feetMovement(1, 0);
+			yaw = zowi.getYaw();
+			d = round(yaw);
+			Serial.print("d : "); Serial.println(d);
+			Serial.print("d - c: "); Serial.println(abs(d-c));
+			Serial.print("d - iD: "); Serial.println(d-initialDirection);
+			zowi.feetMovement(1, 0);
+			yaw = zowi.getYaw();
+			e = round(yaw);
+			Serial.print("e : "); Serial.println(e);
+			Serial.print("e - d: "); Serial.println(abs(e-d));
+			Serial.print("e - iD: "); Serial.println(e-initialDirection);
+			zowi.feetMovement(1, 0);
+			yaw = zowi.getYaw();
+			f = round(yaw);
+			Serial.print("f : "); Serial.println(f);
+			Serial.print("f - e: "); Serial.println(abs(f-e));
+			Serial.print("f - iD: "); Serial.println(f-initialDirection);
+			zowi.feetMovement(1, 0);
+			yaw = zowi.getYaw();
+			g = round(yaw);
+			Serial.print("g : "); Serial.println(g);
+			Serial.print("g - f: "); Serial.println(abs(g-f));
+			Serial.print("g - iD: "); Serial.println(g-initialDirection);
+			// for (int i=0; i<200; i++) {
+			// 	yaw = zowi.getYaw();
+			// 	Serial.print("--"); Serial.println(round(yaw));
+			// 	Serial.print("a - yaw :"); Serial.println(abs(a-round(yaw)));
+			// 	Serial.print("b - yaw :"); Serial.println(abs(b-round(yaw)));
+			// }
+			delay(10000);
+			// for (int i=0; i<200; i++) {
+			// 	float yaw = calculateYaw();
+			// 	getMeanYaw(yaw);
+			// }
+			int directionDiff = abs(initialDirection-meanYaw);
+			int angleCompensation = 30 - directionDiff;
+
+			//zowi.feetMovement(1, angleCompensation);
+		}
+	}
+	else {
+		float yaw = zowi.getYaw();
+		// Serial.println(round(yaw));
+	}
 
 	//First attemp to initial software
 	if (buttonPushed) {

@@ -231,7 +231,7 @@ void MPU9250::initMPU() {
         initMPU9250();
         initAK8963(magCalibration);
 
-        calibrateAccelGyro(accelBias, gyroBias);
+        // calibrateAccelGyro(accelBias, gyroBias);
     }
 }
 

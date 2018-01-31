@@ -78,7 +78,7 @@ class Oscillator
     bool _goOn;
     bool _firstTime;
     int _initialPos;
-    bool _cycleStarted;
+    bool _cycleStarted, _increasing;
     bool _turnHips;
     bool _turnThreshold;
     int _turnThresholdCounter;

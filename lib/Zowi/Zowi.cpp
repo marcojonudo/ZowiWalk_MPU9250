@@ -277,8 +277,10 @@ void Zowi::prepareWalking() {
 	if (getRestState() == true) {
 		setRestState(false);
 	}
-	int homes[4] = {90, 90, 90, 90};
-	_moveServos(500, homes);
+	/* This delay makes the yaw vary around 3º. As the robot is already in
+	this position, these lines can be commented. */
+	// int homes[4] = {90, 90, 90, 90};
+	// _moveServos(500, homes);
 
 	for (int i = 0; i < 4; i++) {
 		servo[i].SetParameters(A[i], O[i], phase_diff[i]);
@@ -290,7 +292,7 @@ void Zowi::feetMovement(int steps, int degreeDiff) {
 		while (servo[1].goOn() && servo[3].goOn()) {
 			for (int i=0; i<4; i++) {
 				servo[i].oscillateServosDegrees(degreeDiff);
-				float yaw = mpu.calculateYaw();
+				float yaw = getYaw();
 				// Serial.print("   "); Serial.println(round(yaw));
 			}
 		}
